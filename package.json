@@ -1,0 +1,14 @@
+{
+  "name": "grind-tracker",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=23.6" },
+  "scripts": {
+    "dev": "node src/app/cli.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.0",
+    "typescript": "^5.8.0"
+  }
+}
