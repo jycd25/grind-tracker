@@ -11,7 +11,7 @@ function esc(s) {
 }
 
 function todayStr() {
-  return new Date().toISOString().slice(0, 10);
+  return new Date().toLocaleDateString("en-CA");
 }
 
 async function api(method, path, body) {

@@ -16,5 +16,5 @@ export function scheduleDates(firstDate: string, steps: number[]): string[] {
 }
 
 export function todayStr(): string {
-  return new Date().toISOString().slice(0, 10);
+  return new Date().toLocaleDateString("en-CA");
 }
