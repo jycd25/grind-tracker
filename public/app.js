@@ -46,9 +46,30 @@ function renderDue() {
   ).join("");
 }
 
+function renderAll() {
+  const el = $("#all-list");
+  if (state.items.length === 0) {
+    el.innerHTML = '<p class="empty">No items yet.</p>';
+    return;
+  }
+  el.innerHTML = state.items.map((item) => {
+    const chips = item.reviews.map((r) => {
+      const cls = r.done_at ? "done" : (r.due_date <= todayStr() ? "duenow" : "future");
+      return '<span class="chip ' + cls + '">+' + r.step + "d " +
+        r.due_date.slice(5) + (r.done_at ? " ✓" : "") + "</span>";
+    }).join("");
+    return '<div class="card">' +
+      "<strong>" + esc(item.label) + "</strong>" +
+      '<div class="meta">grinded ' + esc(item.first_date) + "</div>" +
+      '<div class="chips">' + chips + "</div>" +
+      "</div>";
+  }).join("");
+}
+
 async function refreshItems() {
   state.items = await api("GET", "/api/items");
   renderDue();
+  renderAll();
 }
 
 async function saveItem() {
