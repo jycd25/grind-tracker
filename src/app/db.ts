@@ -55,8 +55,9 @@ export function markReview(db: DatabaseSync, reviewId: number): boolean {
   return db.prepare("UPDATE reviews SET done_at = ? WHERE id = ?").run(doneAt, reviewId).changes > 0;
 }
 
-export function listDue(db: DatabaseSync): ReviewRow[] {
+export function listDue(db: DatabaseSync, date?: string): ReviewRow[] {
+  const cutoff = date ?? todayStr();
   return db
-    .prepare("SELECT * FROM reviews WHERE done_at IS NULL AND due_date = ? ORDER BY id")
-    .all(todayStr()) as unknown as ReviewRow[];
+    .prepare("SELECT * FROM reviews WHERE done_at IS NULL AND due_date <= ? ORDER BY due_date, id")
+    .all(cutoff) as unknown as ReviewRow[];
 }

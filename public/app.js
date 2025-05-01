@@ -29,7 +29,7 @@ function renderDue() {
   const rows = [];
   for (const item of state.items) {
     for (const review of item.reviews) {
-      if (!review.done_at && review.due_date === today) rows.push({ item, review });
+      if (!review.done_at && review.due_date <= today) rows.push({ item, review });
     }
   }
   const el = $("#due-list");
