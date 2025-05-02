@@ -10,7 +10,7 @@ const STATIC: Record<string, [string, string]> = {
   "/style.css": ["style.css", "text/css; charset=utf-8"],
 };
 
-const REVIEW_RE = /^\/api\/reviews\/(\d+)\/done$/;
+const REVIEW_RE = /^\/api\/reviews\/(\d+)\/(done|undone)$/;
 const ITEM_RE = /^\/api\/items\/(\d+)$/;
 
 function send(res: http.ServerResponse, status: number, obj: unknown): void {
@@ -49,7 +49,7 @@ export function createApp(db: DatabaseSync, publicDir: string): http.Server {
 
     const review = REVIEW_RE.exec(path);
     if (method === "POST" && review) {
-      const ok = store.markReview(db, Number(review[1]));
+      const ok = store.markReview(db, Number(review[1]), review[2] === "done");
       return ok ? send(res, 200, { ok: true }) : send(res, 404, { error: "review not found" });
     }
 

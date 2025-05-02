@@ -55,8 +55,8 @@ export function deleteItem(db: DatabaseSync, id: number): boolean {
   return db.prepare("DELETE FROM items WHERE id = ?").run(id).changes > 0;
 }
 
-export function markReview(db: DatabaseSync, reviewId: number): boolean {
-  const doneAt = new Date().toISOString().slice(0, 19);
+export function markReview(db: DatabaseSync, reviewId: number, done: boolean): boolean {
+  const doneAt = done ? new Date().toISOString().slice(0, 19) : null;
   return db.prepare("UPDATE reviews SET done_at = ? WHERE id = ?").run(doneAt, reviewId).changes > 0;
 }
 
