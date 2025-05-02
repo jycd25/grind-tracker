@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS items (
 );
 CREATE TABLE IF NOT EXISTS reviews (
   id       INTEGER PRIMARY KEY,
-  item_id  INTEGER NOT NULL REFERENCES items(id),
+  item_id  INTEGER NOT NULL REFERENCES items(id) ON DELETE CASCADE,
   due_date TEXT NOT NULL,
   step     INTEGER NOT NULL,
   done_at  TEXT
@@ -22,6 +22,7 @@ CREATE TABLE IF NOT EXISTS reviews (
 export function openDb(path: string): DatabaseSync {
   mkdirSync(dirname(path), { recursive: true });
   const db = new DatabaseSync(path);
+  db.exec("PRAGMA foreign_keys = ON");
   db.exec(SCHEMA);
   return db;
 }
@@ -48,6 +49,10 @@ export function addItem(db: DatabaseSync, label: string, firstDate: string): Ite
 export function listItems(db: DatabaseSync): ItemWithReviews[] {
   const ids = db.prepare("SELECT id FROM items ORDER BY first_date DESC, id DESC").all() as unknown as Array<{ id: number }>;
   return ids.map((row) => getItem(db, row.id)!);
+}
+
+export function deleteItem(db: DatabaseSync, id: number): boolean {
+  return db.prepare("DELETE FROM items WHERE id = ?").run(id).changes > 0;
 }
 
 export function markReview(db: DatabaseSync, reviewId: number): boolean {

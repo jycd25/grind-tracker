@@ -11,6 +11,7 @@ const STATIC: Record<string, [string, string]> = {
 };
 
 const REVIEW_RE = /^\/api\/reviews\/(\d+)\/done$/;
+const ITEM_RE = /^\/api\/items\/(\d+)$/;
 
 function send(res: http.ServerResponse, status: number, obj: unknown): void {
   res.writeHead(status, { "Content-Type": "application/json; charset=utf-8" });
@@ -50,6 +51,12 @@ export function createApp(db: DatabaseSync, publicDir: string): http.Server {
     if (method === "POST" && review) {
       const ok = store.markReview(db, Number(review[1]));
       return ok ? send(res, 200, { ok: true }) : send(res, 404, { error: "review not found" });
+    }
+
+    const item = ITEM_RE.exec(path);
+    if (method === "DELETE" && item) {
+      const ok = store.deleteItem(db, Number(item[1]));
+      return ok ? send(res, 200, { ok: true }) : send(res, 404, { error: "item not found" });
     }
 
     send(res, 404, { error: "not found" });

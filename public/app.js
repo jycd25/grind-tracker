@@ -62,6 +62,7 @@ function renderAll() {
       "<strong>" + esc(item.label) + "</strong>" +
       '<div class="meta">grinded ' + esc(item.first_date) + "</div>" +
       '<div class="chips">' + chips + "</div>" +
+      '<button class="danger" data-del="' + item.id + '">Delete</button>' +
       "</div>";
   }).join("");
 }
@@ -83,8 +84,12 @@ async function saveItem() {
 
 document.addEventListener("click", async (event) => {
   const done = event.target.getAttribute && event.target.getAttribute("data-done");
+  const del = event.target.getAttribute && event.target.getAttribute("data-del");
   if (done) {
     await api("POST", "/api/reviews/" + done + "/done");
+    await refreshItems();
+  } else if (del) {
+    await api("DELETE", "/api/items/" + del);
     await refreshItems();
   }
 });
