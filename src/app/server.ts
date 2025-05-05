@@ -44,7 +44,11 @@ export function createApp(db: DatabaseSync, publicDir: string): http.Server {
 
     if (method === "POST" && path === "/api/settings") {
       const payload = (await readBody(req)) as { ladder?: string };
-      store.setLadder(db, String(payload.ladder ?? ""));
+      try {
+        store.setLadder(db, String(payload.ladder ?? ""));
+      } catch (err) {
+        return send(res, 400, { error: err instanceof Error ? err.message : String(err) });
+      }
       return send(res, 200, { ok: true });
     }
 

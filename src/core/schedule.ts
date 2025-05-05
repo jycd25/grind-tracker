@@ -1,7 +1,18 @@
 export const DEFAULT_LADDER = "1,3,7,14,30";
 
 export function parseLadder(s: string): number[] {
-  return s.split(",").map((p) => Number(p.trim()));
+  const parts = s.split(",").map((p) => p.trim());
+  if (parts.some((p) => !/^\d+$/.test(p))) {
+    throw new Error("ladder must be comma-separated integers, e.g. 1,3,7,14,30");
+  }
+  const steps = parts.map(Number);
+  if (steps.some((x) => x <= 0)) {
+    throw new Error("ladder steps must be positive integers");
+  }
+  if (!steps.every((x, i) => i === 0 || steps[i - 1] < x)) {
+    throw new Error("ladder steps must be strictly ascending");
+  }
+  return steps;
 }
 
 const DAY_MS = 86_400_000;

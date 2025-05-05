@@ -38,6 +38,7 @@ export function getLadder(db: DatabaseSync): string {
 }
 
 export function setLadder(db: DatabaseSync, s: string): void {
+  parseLadder(s);
   db.prepare("UPDATE settings SET value = ? WHERE key = 'ladder'").run(s.trim());
 }
 

@@ -21,7 +21,9 @@ async function api(method, path, body) {
     opts.body = JSON.stringify(body);
   }
   const resp = await fetch(path, opts);
-  return resp.json();
+  const data = await resp.json().catch(() => null);
+  if (!resp.ok) throw new Error((data && data.error) || ("HTTP " + resp.status));
+  return data;
 }
 
 function renderDue() {
@@ -111,8 +113,12 @@ $("#manual-label").addEventListener("keydown", (event) => {
 });
 
 $("#ladder-save").addEventListener("click", async () => {
-  await api("POST", "/api/settings", { ladder: $("#ladder").value.trim() });
-  $("#settings-msg").textContent = "Saved.";
+  try {
+    await api("POST", "/api/settings", { ladder: $("#ladder").value.trim() });
+    $("#settings-msg").textContent = "Saved.";
+  } catch (err) {
+    $("#settings-msg").textContent = "Error: " + err.message;
+  }
 });
 
 loadAll();
