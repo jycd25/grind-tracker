@@ -17,6 +17,10 @@ CREATE TABLE IF NOT EXISTS reviews (
   step     INTEGER NOT NULL,
   done_at  TEXT
 );
+CREATE TABLE IF NOT EXISTS settings (
+  key   TEXT PRIMARY KEY,
+  value TEXT NOT NULL
+);
 `;
 
 export function openDb(path: string): DatabaseSync {
@@ -24,7 +28,17 @@ export function openDb(path: string): DatabaseSync {
   const db = new DatabaseSync(path);
   db.exec("PRAGMA foreign_keys = ON");
   db.exec(SCHEMA);
+  db.prepare("INSERT OR IGNORE INTO settings (key, value) VALUES ('ladder', ?)").run(DEFAULT_LADDER);
   return db;
+}
+
+export function getLadder(db: DatabaseSync): string {
+  const row = db.prepare("SELECT value FROM settings WHERE key = 'ladder'").get() as { value: string };
+  return row.value;
+}
+
+export function setLadder(db: DatabaseSync, s: string): void {
+  db.prepare("UPDATE settings SET value = ? WHERE key = 'ladder'").run(s.trim());
 }
 
 export function getItem(db: DatabaseSync, id: number): ItemWithReviews | null {
@@ -37,7 +51,7 @@ export function getItem(db: DatabaseSync, id: number): ItemWithReviews | null {
 }
 
 export function addItem(db: DatabaseSync, label: string, firstDate: string): ItemWithReviews {
-  const steps = parseLadder(DEFAULT_LADDER);
+  const steps = parseLadder(getLadder(db));
   const dues = scheduleDates(firstDate, steps);
   const cur = db.prepare("INSERT INTO items (label, first_date) VALUES (?, ?)").run(label, firstDate);
   const id = Number(cur.lastInsertRowid);

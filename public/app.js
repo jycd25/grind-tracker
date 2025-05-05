@@ -67,6 +67,17 @@ function renderAll() {
   }).join("");
 }
 
+async function loadAll() {
+  const [items, settings] = await Promise.all([
+    api("GET", "/api/items"),
+    api("GET", "/api/settings"),
+  ]);
+  state.items = items;
+  $("#ladder").value = settings.ladder;
+  renderDue();
+  renderAll();
+}
+
 async function refreshItems() {
   state.items = await api("GET", "/api/items");
   renderDue();
@@ -99,4 +110,9 @@ $("#manual-label").addEventListener("keydown", (event) => {
   if (event.key === "Enter") saveItem();
 });
 
-refreshItems();
+$("#ladder-save").addEventListener("click", async () => {
+  await api("POST", "/api/settings", { ladder: $("#ladder").value.trim() });
+  $("#settings-msg").textContent = "Saved.";
+});
+
+loadAll();

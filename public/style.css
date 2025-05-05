@@ -38,5 +38,6 @@ button.danger { background: #cf222e; }
 }
 .chip.done { color: #1a7f37; }
 .chip.duenow { color: #cf222e; }
-.confirm { color: var(--muted); font-size: 13px; }
+.confirm { color: #1a7f37; font-size: 13px; }
+.hint { color: var(--muted); font-size: 13px; }
 .empty { color: var(--muted); }

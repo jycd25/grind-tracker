@@ -40,6 +40,13 @@ export function createApp(db: DatabaseSync, publicDir: string): http.Server {
     }
 
     if (method === "GET" && path === "/api/items") return send(res, 200, store.listItems(db));
+    if (method === "GET" && path === "/api/settings") return send(res, 200, { ladder: store.getLadder(db) });
+
+    if (method === "POST" && path === "/api/settings") {
+      const payload = (await readBody(req)) as { ladder?: string };
+      store.setLadder(db, String(payload.ladder ?? ""));
+      return send(res, 200, { ok: true });
+    }
 
     if (method === "POST" && path === "/api/items") {
       const payload = (await readBody(req)) as { label?: string; first_date?: string };
