@@ -7,28 +7,42 @@
 <link rel="stylesheet" href="/style.css">
 </head>
 <body>
-<h1>Grind Tracker</h1>
+<header>
+  <h1>Grind Tracker</h1>
+  <nav id="tabs">
+    <button data-tab="due" class="active">Due</button>
+    <button data-tab="add">Add</button>
+    <button data-tab="all">All</button>
+    <button data-tab="settings">Settings</button>
+  </nav>
+</header>
 
-<h2>Due</h2>
-<div id="due-list"></div>
+<main>
+  <section id="tab-due" class="tab active">
+    <div id="due-list"></div>
+  </section>
 
-<h2>Add</h2>
-<label>What did you grind?
-  <input id="manual-label" type="text" placeholder="e.g. 0/1 knapsack" autocomplete="off">
-</label>
-<button id="add-save">Save</button>
-<p id="add-confirm" class="confirm"></p>
+  <section id="tab-add" class="tab">
+    <label>What did you grind?
+      <input id="manual-label" type="text" placeholder="e.g. 0/1 knapsack" autocomplete="off">
+    </label>
+    <button id="add-save">Save</button>
+    <p id="add-confirm" class="confirm"></p>
+  </section>
 
-<h2>All items</h2>
-<div id="all-list"></div>
+  <section id="tab-all" class="tab">
+    <div id="all-list"></div>
+  </section>
 
-<h2>Settings</h2>
-<label>Review ladder (days after first grind)
-  <input id="ladder" type="text">
-</label>
-<button id="ladder-save">Save</button>
-<p class="hint">Changes affect new items only.</p>
-<p id="settings-msg" class="confirm"></p>
+  <section id="tab-settings" class="tab">
+    <label>Review ladder (days after first grind)
+      <input id="ladder" type="text">
+    </label>
+    <button id="ladder-save">Save</button>
+    <p class="hint">Changes affect new items only.</p>
+    <p id="settings-msg" class="confirm"></p>
+  </section>
+</main>
 
 <script src="/app.js"></script>
 </body>

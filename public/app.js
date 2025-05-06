@@ -41,7 +41,7 @@ function renderDue() {
   }
   el.innerHTML = rows.map(({ item, review }) =>
     '<div class="row">' +
-      '<span class="badge">+' + review.step + "d</span>" +
+      '<span class="badge step">+' + review.step + "d</span>" +
       "<strong>" + esc(item.label) + "</strong>" +
       '<button data-done="' + review.id + '">Done</button>' +
     "</div>"
@@ -105,6 +105,13 @@ document.addEventListener("click", async (event) => {
     await api("DELETE", "/api/items/" + del);
     await refreshItems();
   }
+});
+
+$("#tabs").addEventListener("click", (event) => {
+  const tab = event.target.getAttribute("data-tab");
+  if (!tab) return;
+  document.querySelectorAll("#tabs button").forEach((b) => b.classList.toggle("active", b === event.target));
+  document.querySelectorAll(".tab").forEach((s) => s.classList.toggle("active", s.id === "tab-" + tab));
 });
 
 $("#add-save").addEventListener("click", saveItem);

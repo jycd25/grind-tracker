@@ -8,8 +8,15 @@ body {
   font: 15px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   background: var(--bg); color: var(--fg);
 }
+header { display: flex; align-items: baseline; gap: 24px; flex-wrap: wrap; }
 h1 { font-size: 20px; margin: 8px 0; }
-h2 { font-size: 16px; margin: 20px 0 8px; }
+nav button {
+  background: none; border: none; color: var(--muted); font-size: 15px;
+  padding: 6px 10px; cursor: pointer; border-bottom: 2px solid transparent;
+}
+nav button.active { color: var(--fg); border-bottom-color: var(--accent); }
+.tab { display: none; margin-top: 16px; }
+.tab.active { display: block; }
 label { display: block; margin: 12px 0 4px; color: var(--muted); font-size: 13px; }
 input[type="text"] {
   width: 100%; padding: 8px; font-size: 15px; color: var(--fg);
@@ -28,8 +35,9 @@ button.danger { background: #cf222e; }
 .row button { margin: 0 0 0 auto; }
 .badge {
   font-size: 12px; padding: 1px 8px; border-radius: 10px;
-  background: var(--chipbg); border: 1px solid var(--line); color: var(--accent);
+  background: var(--chipbg); border: 1px solid var(--line);
 }
+.badge.step { color: var(--accent); }
 .meta { color: var(--muted); font-size: 13px; }
 .chips { margin: 6px 0; display: flex; gap: 6px; flex-wrap: wrap; }
 .chip {
