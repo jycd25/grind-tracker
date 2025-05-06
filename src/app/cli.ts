@@ -27,7 +27,17 @@ const { values } = parseArgs({
 
 const db = openDb(values.db);
 const port = Number(values.port);
-createApp(db, PUBLIC_DIR).listen(port, "127.0.0.1", () => {
+const app = createApp(db, PUBLIC_DIR);
+app.on("error", (err: NodeJS.ErrnoException) => {
+  if (err.code === "EADDRINUSE") {
+    console.error(
+      `Port ${port} is already in use — the tracker is probably already running. Open http://127.0.0.1:${port}/`,
+    );
+    process.exit(1);
+  }
+  throw err;
+});
+app.listen(port, "127.0.0.1", () => {
   const url = `http://127.0.0.1:${port}/`;
   console.log(`Grind tracker running at ${url} (Ctrl+C to stop)`);
   console.log(`Database: ${values.db}`);
