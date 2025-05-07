@@ -1,6 +1,8 @@
 export interface ItemRow {
   id: number;
   label: string;
+  source: string | null;
+  anchor: string | null;
   first_date: string;
 }
 

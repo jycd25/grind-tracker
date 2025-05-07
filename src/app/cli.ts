@@ -22,12 +22,13 @@ const { values } = parseArgs({
   options: {
     db: { type: "string", default: DEFAULT_DB },
     port: { type: "string", default: "8777" },
+    notes: { type: "string" },
   },
 });
 
 const db = openDb(values.db);
 const port = Number(values.port);
-const app = createApp(db, PUBLIC_DIR);
+const app = createApp(db, { publicDir: PUBLIC_DIR, notesDir: values.notes });
 app.on("error", (err: NodeJS.ErrnoException) => {
   if (err.code === "EADDRINUSE") {
     console.error(

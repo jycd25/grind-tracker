@@ -1,8 +1,14 @@
 import http from "node:http";
 import { readFileSync } from "node:fs";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
 import type { DatabaseSync } from "node:sqlite";
 import * as store from "./db.ts";
+import { scan } from "./indexer.ts";
+
+export interface AppOptions {
+  publicDir: string;
+  notesDir?: string;
+}
 
 const STATIC: Record<string, [string, string]> = {
   "/": ["index.html", "text/html; charset=utf-8"],
@@ -27,7 +33,7 @@ function readBody(req: http.IncomingMessage): Promise<unknown> {
   });
 }
 
-export function createApp(db: DatabaseSync, publicDir: string): http.Server {
+export function createApp(db: DatabaseSync, opts: AppOptions): http.Server {
   return http.createServer(async (req, res) => {
     const path = new URL(req.url ?? "/", "http://localhost").pathname;
     const method = req.method ?? "GET";
@@ -35,12 +41,18 @@ export function createApp(db: DatabaseSync, publicDir: string): http.Server {
     if (method === "GET" && path in STATIC) {
       const [name, ctype] = STATIC[path];
       res.writeHead(200, { "Content-Type": ctype });
-      res.end(readFileSync(join(publicDir, name)));
+      res.end(readFileSync(join(opts.publicDir, name)));
       return;
     }
 
     if (method === "GET" && path === "/api/items") return send(res, 200, store.listItems(db));
     if (method === "GET" && path === "/api/settings") return send(res, 200, { ladder: store.getLadder(db) });
+    if (method === "GET" && path === "/api/sections") {
+      return send(res, 200, {
+        base: opts.notesDir ? resolve(opts.notesDir) : null,
+        sections: opts.notesDir ? scan(opts.notesDir) : [],
+      });
+    }
 
     if (method === "POST" && path === "/api/settings") {
       const payload = (await readBody(req)) as { ladder?: string };
@@ -53,8 +65,15 @@ export function createApp(db: DatabaseSync, publicDir: string): http.Server {
     }
 
     if (method === "POST" && path === "/api/items") {
-      const payload = (await readBody(req)) as { label?: string; first_date?: string };
-      const item = store.addItem(db, String(payload.label ?? ""), String(payload.first_date ?? ""));
+      const payload = (await readBody(req)) as {
+        label?: string; source?: string | null; anchor?: string | null; first_date?: string;
+      };
+      const item = store.addItem(db, {
+        label: String(payload.label ?? ""),
+        source: payload.source == null ? null : String(payload.source),
+        anchor: payload.anchor == null ? null : String(payload.anchor),
+        first_date: String(payload.first_date ?? ""),
+      });
       return send(res, 201, item);
     }
 
