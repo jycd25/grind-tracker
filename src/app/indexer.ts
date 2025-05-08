@@ -36,7 +36,10 @@ export function scan(notesDir: string): Section[] {
       continue;
     }
     const stem = basename(name, extname(name));
+    let inCode = false;
     lines.forEach((line, i) => {
+      if (line.trimStart().startsWith("```")) { inCode = !inCode; return; }
+      if (inCode) return;
       const m = HEADING_RE.exec(line);
       if (!m) return;
       const title = m[2];
