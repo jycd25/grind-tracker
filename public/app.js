@@ -26,6 +26,15 @@ async function api(method, path, body) {
   return data;
 }
 
+function sourceLink(item) {
+  if (!item.source) return "";
+  const live = state.base &&
+    state.sections.find((s) => s.file === item.source && s.anchor === item.anchor);
+  if (!live) return "";
+  const href = "vscode://file/" + state.base + "/" + live.file + ":" + live.line;
+  return '<a href="' + esc(href) + '">open notes</a>';
+}
+
 function renderDue() {
   const today = todayStr();
   const rows = [];
@@ -43,6 +52,7 @@ function renderDue() {
     '<div class="row">' +
       '<span class="badge step">+' + review.step + "d</span>" +
       "<strong>" + esc(item.label) + "</strong>" +
+      sourceLink(item) +
       '<button data-done="' + review.id + '">Done</button>' +
     "</div>"
   ).join("");
@@ -61,7 +71,7 @@ function renderAll() {
         r.due_date.slice(5) + (r.done_at ? " ✓" : "") + "</span>";
     }).join("");
     return '<div class="card">' +
-      "<strong>" + esc(item.label) + "</strong>" +
+      "<strong>" + esc(item.label) + "</strong> " + sourceLink(item) +
       '<div class="meta">grinded ' + esc(item.first_date) + "</div>" +
       '<div class="chips">' + chips + "</div>" +
       '<button class="danger" data-del="' + item.id + '">Delete</button>' +

@@ -50,6 +50,7 @@ button.danger { background: #cf222e; }
 .hint { color: var(--muted); font-size: 13px; }
 .empty { color: var(--muted); }
 .hidden { display: none; }
+a { color: var(--accent); }
 .result { padding: 6px 10px; border-bottom: 1px solid var(--line); cursor: pointer; }
 .result:hover { background: var(--chipbg); }
 #search-results { max-height: 320px; overflow-y: auto; margin-top: 4px; }
