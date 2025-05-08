@@ -1,6 +1,6 @@
 "use strict";
 
-const state = { items: [] };
+const state = { base: null, sections: [], items: [], selected: null };
 
 const $ = (sel) => document.querySelector(sel);
 
@@ -70,12 +70,16 @@ function renderAll() {
 }
 
 async function loadAll() {
-  const [items, settings] = await Promise.all([
+  const [sec, items, settings] = await Promise.all([
+    api("GET", "/api/sections"),
     api("GET", "/api/items"),
     api("GET", "/api/settings"),
   ]);
+  state.base = sec.base;
+  state.sections = sec.sections;
   state.items = items;
   $("#ladder").value = settings.ladder;
+  $("#search-wrap").classList.toggle("hidden", state.sections.length === 0);
   renderDue();
   renderAll();
 }
@@ -86,10 +90,34 @@ async function refreshItems() {
   renderAll();
 }
 
+function renderSearch() {
+  const q = $("#search").value.trim().toLowerCase();
+  const el = $("#search-results");
+  if (!q) { el.innerHTML = ""; return; }
+  const matches = state.sections.filter((s) => s.label.toLowerCase().includes(q)).slice(0, 50);
+  el.innerHTML = matches.map((s, i) =>
+    '<div class="result" data-idx="' + i + '">' + esc(s.label) + "</div>"
+  ).join("") || '<p class="empty">No matching sections.</p>';
+  el.querySelectorAll(".result").forEach((node, i) => {
+    node.addEventListener("click", () => {
+      state.selected = { label: matches[i].label, source: matches[i].file, anchor: matches[i].anchor };
+      $("#selected-section").textContent = "Selected: " + matches[i].label;
+      $("#selected-section").classList.remove("hidden");
+      $("#search-results").innerHTML = "";
+      $("#search").value = "";
+    });
+  });
+}
+
 async function saveItem() {
-  const label = $("#manual-label").value.trim();
-  if (!label) return;
-  const item = await api("POST", "/api/items", { label: label, first_date: todayStr() });
+  const manual = $("#manual-label").value.trim();
+  const candidate = manual ? { label: manual, source: null, anchor: null } : state.selected;
+  if (!candidate) return;
+  const item = await api("POST", "/api/items", {
+    label: candidate.label, source: candidate.source, anchor: candidate.anchor, first_date: todayStr(),
+  });
+  state.selected = null;
+  $("#selected-section").classList.add("hidden");
   $("#manual-label").value = "";
   $("#add-confirm").textContent = "Saved. Reviews due: " + item.reviews.map((r) => r.due_date).join(", ");
   await refreshItems();
@@ -114,6 +142,7 @@ $("#tabs").addEventListener("click", (event) => {
   document.querySelectorAll(".tab").forEach((s) => s.classList.toggle("active", s.id === "tab-" + tab));
 });
 
+$("#search").addEventListener("input", renderSearch);
 $("#add-save").addEventListener("click", saveItem);
 $("#manual-label").addEventListener("keydown", (event) => {
   if (event.key === "Enter") saveItem();

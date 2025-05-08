@@ -49,3 +49,8 @@ button.danger { background: #cf222e; }
 .confirm { color: #1a7f37; font-size: 13px; }
 .hint { color: var(--muted); font-size: 13px; }
 .empty { color: var(--muted); }
+.hidden { display: none; }
+.result { padding: 6px 10px; border-bottom: 1px solid var(--line); cursor: pointer; }
+.result:hover { background: var(--chipbg); }
+#search-results { max-height: 320px; overflow-y: auto; margin-top: 4px; }
+#selected-section { margin-top: 8px; font-size: 13px; color: var(--muted); }

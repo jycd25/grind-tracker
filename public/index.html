@@ -26,6 +26,13 @@
     <label>What did you grind?
       <input id="manual-label" type="text" placeholder="e.g. 0/1 knapsack" autocomplete="off">
     </label>
+    <div id="search-wrap" class="hidden">
+      <label>Or pick from your notes
+        <input id="search" type="text" placeholder="Type to search indexed sections" autocomplete="off">
+      </label>
+      <div id="search-results"></div>
+    </div>
+    <div id="selected-section" class="hidden"></div>
     <button id="add-save">Save</button>
     <p id="add-confirm" class="confirm"></p>
   </section>
