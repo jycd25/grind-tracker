@@ -36,6 +36,7 @@ export function scan(notesDir: string): Section[] {
       continue;
     }
     const stem = basename(name, extname(name));
+    const counts = new Map<string, number>();
     let inCode = false;
     lines.forEach((line, i) => {
       if (line.trimStart().startsWith("```")) { inCode = !inCode; return; }
@@ -43,9 +44,12 @@ export function scan(notesDir: string): Section[] {
       const m = HEADING_RE.exec(line);
       if (!m) return;
       const title = m[2];
+      const base = githubSlug(title);
+      const n = counts.get(base) ?? 0;
+      counts.set(base, n + 1);
       sections.push({
         file: name,
-        anchor: githubSlug(title),
+        anchor: n === 0 ? base : `${base}-${n}`,
         label: `${stem} > ${title}`,
         line: i + 1,
         level: m[1].length,
