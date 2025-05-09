@@ -30,7 +30,7 @@ function sourceLink(item) {
   if (!item.source) return "";
   const live = state.base &&
     state.sections.find((s) => s.file === item.source && s.anchor === item.anchor);
-  if (!live) return "";
+  if (!live) return '<span class="badge moved">' + esc(item.source) + "</span>";
   const href = "vscode://file/" + state.base + "/" + live.file + ":" + live.line;
   return '<a href="' + esc(href) + '">open notes</a>';
 }
