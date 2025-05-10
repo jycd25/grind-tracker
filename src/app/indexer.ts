@@ -38,7 +38,11 @@ export function scan(notesDir: string): Section[] {
     const stem = basename(name, extname(name));
     const counts = new Map<string, number>();
     let inCode = false;
+    let inToc = false;
     lines.forEach((line, i) => {
+      if (line.includes("<!-- START doctoc")) { inToc = true; return; }
+      if (line.includes("<!-- END doctoc")) { inToc = false; return; }
+      if (inToc) return;
       if (line.trimStart().startsWith("```")) { inCode = !inCode; return; }
       if (inCode) return;
       const m = HEADING_RE.exec(line);
