@@ -139,9 +139,16 @@ function renderSelected() {
     return;
   }
   el.classList.remove("hidden");
-  el.innerHTML = "Selected: " + state.selected.map((s) =>
-    '<span class="chip">' + esc(s.label) + "</span>"
+  el.innerHTML = "Selected: " + state.selected.map((s, i) =>
+    '<span class="chip">' + esc(s.label) +
+    '<button class="unsel" data-unsel="' + i + '" title="Remove">&times;</button></span>'
   ).join("");
+  el.querySelectorAll("[data-unsel]").forEach((node) => {
+    node.addEventListener("click", () => {
+      state.selected.splice(Number(node.getAttribute("data-unsel")), 1);
+      renderSelected();
+    });
+  });
   $("#add-save").disabled = false;
 }
 
