@@ -24,7 +24,10 @@
 
   <section id="tab-add" class="tab">
     <label>What did you grind?
-      <input id="manual-label" type="text" placeholder="e.g. 0/1 knapsack" autocomplete="off">
+      <span class="add-row">
+        <input id="manual-label" type="text" placeholder="e.g. 0/1 knapsack" autocomplete="off">
+        <button id="manual-add">Add</button>
+      </span>
     </label>
     <div id="search-wrap" class="hidden">
       <label>Or pick from your notes
@@ -33,7 +36,7 @@
       <div id="search-results"></div>
     </div>
     <div id="selected-section" class="hidden"></div>
-    <button id="add-save">Save</button>
+    <button id="add-save" disabled>Save</button>
     <p id="add-confirm" class="confirm"></p>
   </section>
 

@@ -1,6 +1,6 @@
 "use strict";
 
-const state = { base: null, sections: [], items: [], selected: null };
+const state = { base: null, sections: [], items: [], selected: [] };
 
 const $ = (sel) => document.querySelector(sel);
 
@@ -26,6 +26,21 @@ async function api(method, path, body) {
   return data;
 }
 
+async function loadAll() {
+  const [sec, items, settings] = await Promise.all([
+    api("GET", "/api/sections"),
+    api("GET", "/api/items"),
+    api("GET", "/api/settings"),
+  ]);
+  state.base = sec.base;
+  state.sections = sec.sections;
+  state.items = items;
+  $("#ladder").value = settings.ladder;
+  $("#search-wrap").classList.toggle("hidden", state.sections.length === 0);
+  renderDue();
+  renderAll();
+}
+
 function sourceLink(item) {
   if (!item.source) return "";
   const live = state.base &&
@@ -35,27 +50,34 @@ function sourceLink(item) {
   return '<a href="' + esc(href) + '">open notes</a>';
 }
 
-function renderDue() {
+function dueRows() {
   const today = todayStr();
   const rows = [];
   for (const item of state.items) {
     for (const review of item.reviews) {
-      if (!review.done_at && review.due_date <= today) rows.push({ item, review });
+      if (!review.done_at && review.due_date <= today) {
+        rows.push({ item, review });
+      }
     }
   }
+  return rows;
+}
+
+function renderDue() {
+  const rows = dueRows();
   const el = $("#due-list");
   if (rows.length === 0) {
     el.innerHTML = '<p class="empty">Nothing due. Go grind something.</p>';
     return;
   }
-  el.innerHTML = rows.map(({ item, review }) =>
-    '<div class="row">' +
+  el.innerHTML = rows.map(({ item, review }) => {
+    return '<div class="row">' +
       '<span class="badge step">+' + review.step + "d</span>" +
       "<strong>" + esc(item.label) + "</strong>" +
       sourceLink(item) +
       '<button data-done="' + review.id + '">Done</button>' +
-    "</div>"
-  ).join("");
+      "</div>";
+  }).join("");
 }
 
 function renderAll() {
@@ -79,27 +101,6 @@ function renderAll() {
   }).join("");
 }
 
-async function loadAll() {
-  const [sec, items, settings] = await Promise.all([
-    api("GET", "/api/sections"),
-    api("GET", "/api/items"),
-    api("GET", "/api/settings"),
-  ]);
-  state.base = sec.base;
-  state.sections = sec.sections;
-  state.items = items;
-  $("#ladder").value = settings.ladder;
-  $("#search-wrap").classList.toggle("hidden", state.sections.length === 0);
-  renderDue();
-  renderAll();
-}
-
-async function refreshItems() {
-  state.items = await api("GET", "/api/items");
-  renderDue();
-  renderAll();
-}
-
 function renderSearch() {
   const q = $("#search").value.trim().toLowerCase();
   const el = $("#search-results");
@@ -110,27 +111,71 @@ function renderSearch() {
   ).join("") || '<p class="empty">No matching sections.</p>';
   el.querySelectorAll(".result").forEach((node, i) => {
     node.addEventListener("click", () => {
-      state.selected = { label: matches[i].label, source: matches[i].file, anchor: matches[i].anchor };
-      $("#selected-section").textContent = "Selected: " + matches[i].label;
-      $("#selected-section").classList.remove("hidden");
+      selectCandidate({ label: matches[i].label, source: matches[i].file, anchor: matches[i].anchor });
       $("#search-results").innerHTML = "";
       $("#search").value = "";
+      $("#search").focus();
     });
   });
 }
 
-async function saveItem() {
-  const manual = $("#manual-label").value.trim();
-  const candidate = manual ? { label: manual, source: null, anchor: null } : state.selected;
-  if (!candidate) return;
-  const item = await api("POST", "/api/items", {
-    label: candidate.label, source: candidate.source, anchor: candidate.anchor, first_date: todayStr(),
-  });
-  state.selected = null;
-  $("#selected-section").classList.add("hidden");
+function candidateKey(c) {
+  return c.label + "\n" + (c.source || "") + "\n" + (c.anchor || "");
+}
+
+function selectCandidate(candidate) {
+  if (!state.selected.some((s) => candidateKey(s) === candidateKey(candidate))) {
+    state.selected.push(candidate);
+  }
+  renderSelected();
+}
+
+function renderSelected() {
+  const el = $("#selected-section");
+  if (state.selected.length === 0) {
+    el.classList.add("hidden");
+    el.innerHTML = "";
+    $("#add-save").disabled = true;
+    return;
+  }
+  el.classList.remove("hidden");
+  el.innerHTML = "Selected: " + state.selected.map((s) =>
+    '<span class="chip">' + esc(s.label) + "</span>"
+  ).join("");
+  $("#add-save").disabled = false;
+}
+
+function addManual() {
+  const label = $("#manual-label").value.trim();
+  if (!label) return;
+  selectCandidate({ label: label, source: null, anchor: null });
   $("#manual-label").value = "";
-  $("#add-confirm").textContent = "Saved. Reviews due: " + item.reviews.map((r) => r.due_date).join(", ");
+  $("#manual-label").focus();
+}
+
+async function saveItems() {
+  if (state.selected.length === 0) return;
+  const firstDate = todayStr();
+  const saved = [];
+  for (const s of state.selected) {
+    const item = await api("POST", "/api/items", {
+      label: s.label, source: s.source, anchor: s.anchor,
+      first_date: firstDate,
+    });
+    saved.push(item);
+  }
+  state.selected = [];
+  $("#add-confirm").textContent = "Saved " + saved.length +
+    (saved.length === 1 ? " item." : " items.") +
+    " Reviews due: " + saved[0].reviews.map((r) => r.due_date).join(", ");
+  renderSelected();
   await refreshItems();
+}
+
+async function refreshItems() {
+  state.items = await api("GET", "/api/items");
+  renderDue();
+  renderAll();
 }
 
 document.addEventListener("click", async (event) => {
@@ -153,11 +198,11 @@ $("#tabs").addEventListener("click", (event) => {
 });
 
 $("#search").addEventListener("input", renderSearch);
-$("#add-save").addEventListener("click", saveItem);
+$("#manual-add").addEventListener("click", addManual);
 $("#manual-label").addEventListener("keydown", (event) => {
-  if (event.key === "Enter") saveItem();
+  if (event.key === "Enter") addManual();
 });
-
+$("#add-save").addEventListener("click", saveItems);
 $("#ladder-save").addEventListener("click", async () => {
   try {
     await api("POST", "/api/settings", { ladder: $("#ladder").value.trim() });
@@ -166,5 +211,7 @@ $("#ladder-save").addEventListener("click", async () => {
     $("#settings-msg").textContent = "Error: " + err.message;
   }
 });
-
-loadAll();
+loadAll().catch((err) => {
+  document.body.insertAdjacentHTML("afterbegin",
+    '<p class="empty">Failed to load: ' + esc(err.message) + "</p>");
+});
