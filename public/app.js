@@ -164,17 +164,22 @@ async function saveItems() {
   if (state.selected.length === 0) return;
   const firstDate = todayStr();
   const saved = [];
-  for (const s of state.selected) {
-    const item = await api("POST", "/api/items", {
-      label: s.label, source: s.source, anchor: s.anchor,
-      first_date: firstDate,
-    });
-    saved.push(item);
+  try {
+    for (const s of [...state.selected]) {
+      const item = await api("POST", "/api/items", {
+        label: s.label, source: s.source, anchor: s.anchor,
+        first_date: firstDate,
+      });
+      saved.push(item);
+      state.selected = state.selected.filter((x) => candidateKey(x) !== candidateKey(s));
+    }
+    $("#add-confirm").textContent = "Saved " + saved.length +
+      (saved.length === 1 ? " item." : " items.") +
+      " Reviews due: " + saved[0].reviews.map((r) => r.due_date).join(", ");
+  } catch (err) {
+    $("#add-confirm").textContent = "Error: " + err.message +
+      (saved.length ? " (" + saved.length + " saved before the error)" : "");
   }
-  state.selected = [];
-  $("#add-confirm").textContent = "Saved " + saved.length +
-    (saved.length === 1 ? " item." : " items.") +
-    " Reviews due: " + saved[0].reviews.map((r) => r.due_date).join(", ");
   renderSelected();
   await refreshItems();
 }
