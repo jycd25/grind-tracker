@@ -74,6 +74,7 @@ function renderDue() {
     return '<div class="row">' +
       '<span class="badge step">+' + review.step + "d</span>" +
       "<strong>" + esc(item.label) + "</strong>" +
+      (item.note ? '<span class="note">' + esc(item.note) + "</span>" : "") +
       sourceLink(item) +
       '<button data-done="' + review.id + '">Done</button>' +
       "</div>";
@@ -94,7 +95,8 @@ function renderAll() {
     }).join("");
     return '<div class="card">' +
       "<strong>" + esc(item.label) + "</strong> " + sourceLink(item) +
-      '<div class="meta">grinded ' + esc(item.first_date) + "</div>" +
+      '<div class="meta">grinded ' + esc(item.first_date) +
+      (item.note ? " — " + esc(item.note) : "") + "</div>" +
       '<div class="chips">' + chips + "</div>" +
       '<button class="danger" data-del="' + item.id + '">Delete</button>' +
       "</div>";
@@ -162,13 +164,14 @@ function addManual() {
 
 async function saveItems() {
   if (state.selected.length === 0) return;
+  const note = $("#add-note").value.trim();
   const firstDate = todayStr();
   const saved = [];
   try {
     for (const s of [...state.selected]) {
       const item = await api("POST", "/api/items", {
         label: s.label, source: s.source, anchor: s.anchor,
-        first_date: firstDate,
+        note: note, first_date: firstDate,
       });
       saved.push(item);
       state.selected = state.selected.filter((x) => candidateKey(x) !== candidateKey(s));
@@ -176,6 +179,7 @@ async function saveItems() {
     $("#add-confirm").textContent = "Saved " + saved.length +
       (saved.length === 1 ? " item." : " items.") +
       " Reviews due: " + saved[0].reviews.map((r) => r.due_date).join(", ");
+    $("#add-note").value = "";
   } catch (err) {
     $("#add-confirm").textContent = "Error: " + err.message +
       (saved.length ? " (" + saved.length + " saved before the error)" : "");

@@ -66,12 +66,13 @@ export function createApp(db: DatabaseSync, opts: AppOptions): http.Server {
 
     if (method === "POST" && path === "/api/items") {
       const payload = (await readBody(req)) as {
-        label?: string; source?: string | null; anchor?: string | null; first_date?: string;
+        label?: string; source?: string | null; anchor?: string | null; note?: string; first_date?: string;
       };
       const item = store.addItem(db, {
         label: String(payload.label ?? ""),
         source: payload.source == null ? null : String(payload.source),
         anchor: payload.anchor == null ? null : String(payload.anchor),
+        note: String(payload.note ?? ""),
         first_date: String(payload.first_date ?? ""),
       });
       return send(res, 201, item);

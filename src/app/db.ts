@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS items (
   label      TEXT NOT NULL,
   source     TEXT,
   anchor     TEXT,
+  note       TEXT NOT NULL DEFAULT '',
   first_date TEXT NOT NULL
 );
 CREATE TABLE IF NOT EXISTS reviews (
@@ -29,6 +30,7 @@ export interface NewItem {
   label: string;
   source?: string | null;
   anchor?: string | null;
+  note?: string;
   first_date: string;
 }
 
@@ -64,8 +66,8 @@ export function addItem(db: DatabaseSync, input: NewItem): ItemWithReviews {
   const steps = parseLadder(getLadder(db));
   const dues = scheduleDates(input.first_date, steps);
   const cur = db
-    .prepare("INSERT INTO items (label, source, anchor, first_date) VALUES (?, ?, ?, ?)")
-    .run(input.label, input.source ?? null, input.anchor ?? null, input.first_date);
+    .prepare("INSERT INTO items (label, source, anchor, note, first_date) VALUES (?, ?, ?, ?, ?)")
+    .run(input.label, input.source ?? null, input.anchor ?? null, input.note ?? "", input.first_date);
   const id = Number(cur.lastInsertRowid);
   const ins = db.prepare("INSERT INTO reviews (item_id, due_date, step) VALUES (?, ?, ?)");
   steps.forEach((step, i) => ins.run(id, dues[i], step));

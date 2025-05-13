@@ -40,7 +40,7 @@ button.danger { background: #cf222e; }
 }
 .badge.moved { color: var(--muted); }
 .badge.step { color: var(--accent); }
-.meta, .hint { color: var(--muted); font-size: 13px; }
+.note, .meta, .hint { color: var(--muted); font-size: 13px; }
 .chips { margin: 6px 0; display: flex; gap: 6px; flex-wrap: wrap; }
 .chip {
   font-size: 12px; padding: 1px 8px; border-radius: 10px;

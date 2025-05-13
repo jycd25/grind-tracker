@@ -3,6 +3,7 @@ export interface ItemRow {
   label: string;
   source: string | null;
   anchor: string | null;
+  note: string;
   first_date: string;
 }
 
