@@ -18,7 +18,7 @@ nav button.active { color: var(--fg); border-bottom-color: var(--accent); }
 .tab { display: none; margin-top: 16px; }
 .tab.active { display: block; }
 label { display: block; margin: 12px 0 4px; color: var(--muted); font-size: 13px; }
-input[type="text"] {
+input[type="text"], input[type="date"] {
   width: 100%; padding: 8px; font-size: 15px; color: var(--fg);
   background: var(--chipbg); border: 1px solid var(--line); border-radius: 6px;
 }

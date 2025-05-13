@@ -165,7 +165,7 @@ function addManual() {
 async function saveItems() {
   if (state.selected.length === 0) return;
   const note = $("#add-note").value.trim();
-  const firstDate = todayStr();
+  const firstDate = $("#add-date").value;
   const saved = [];
   try {
     for (const s of [...state.selected]) {
@@ -227,6 +227,7 @@ $("#ladder-save").addEventListener("click", async () => {
     $("#settings-msg").textContent = "Error: " + err.message;
   }
 });
+$("#add-date").value = todayStr();
 loadAll().catch((err) => {
   document.body.insertAdjacentHTML("afterbegin",
     '<p class="empty">Failed to load: ' + esc(err.message) + "</p>");
