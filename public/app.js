@@ -60,6 +60,7 @@ function dueRows() {
       }
     }
   }
+  rows.sort((a, b) => a.review.due_date.localeCompare(b.review.due_date));
   return rows;
 }
 

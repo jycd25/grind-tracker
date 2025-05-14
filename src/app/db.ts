@@ -88,9 +88,33 @@ export function markReview(db: DatabaseSync, reviewId: number, done: boolean): b
   return db.prepare("UPDATE reviews SET done_at = ? WHERE id = ?").run(doneAt, reviewId).changes > 0;
 }
 
-export function listDue(db: DatabaseSync, date?: string): ReviewRow[] {
+export function listDue(db: DatabaseSync, date?: string): Array<{ review: ReviewRow; item: ItemRow }> {
   const cutoff = date ?? todayStr();
-  return db
-    .prepare("SELECT * FROM reviews WHERE done_at IS NULL AND due_date <= ? ORDER BY due_date, id")
-    .all(cutoff) as unknown as ReviewRow[];
+  const rows = db
+    .prepare(
+      `SELECT r.id AS r_id, r.item_id, r.due_date, r.step, r.done_at,
+              i.id AS i_id, i.label, i.source, i.anchor, i.note, i.first_date
+       FROM reviews r JOIN items i ON i.id = r.item_id
+       WHERE r.done_at IS NULL AND r.due_date <= ?
+       ORDER BY r.due_date, r.id`,
+    )
+    .all(cutoff) as unknown as Array<Record<string, unknown>>;
+  return rows.map((row) => ({
+    review: {
+      id: row.r_id as number,
+      item_id: row.item_id as number,
+      due_date: row.due_date as string,
+      step: row.step as number,
+      done_at: row.done_at as string | null,
+    },
+    item: {
+      id: row.i_id as number,
+      label: row.label as string,
+      source: row.source as string | null,
+      anchor: row.anchor as string | null,
+      note: row.note as string,
+      first_date: row.first_date as string,
+    },
+  }));
 }
+
