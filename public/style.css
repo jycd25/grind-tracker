@@ -38,6 +38,7 @@ button.danger { background: #cf222e; }
   font-size: 12px; padding: 1px 8px; border-radius: 10px;
   background: var(--chipbg); border: 1px solid var(--line);
 }
+.badge.late { color: #cf222e; border-color: #cf222e; }
 .badge.moved { color: var(--muted); }
 .badge.step { color: var(--accent); }
 .note, .meta, .hint { color: var(--muted); font-size: 13px; }

@@ -63,6 +63,11 @@ function dueRows() {
   return rows;
 }
 
+function daysLate(dueDate) {
+  const ms = new Date(todayStr()) - new Date(dueDate);
+  return Math.round(ms / 86400000);
+}
+
 function renderDue() {
   const rows = dueRows();
   const el = $("#due-list");
@@ -71,9 +76,11 @@ function renderDue() {
     return;
   }
   el.innerHTML = rows.map(({ item, review }) => {
+    const late = daysLate(review.due_date);
+    const lateBadge = late > 0 ? '<span class="badge late">' + late + "d late</span>" : "";
     return '<div class="row">' +
       '<span class="badge step">+' + review.step + "d</span>" +
-      "<strong>" + esc(item.label) + "</strong>" +
+      "<strong>" + esc(item.label) + "</strong>" + lateBadge +
       (item.note ? '<span class="note">' + esc(item.note) + "</span>" : "") +
       sourceLink(item) +
       '<button data-done="' + review.id + '">Done</button>' +
