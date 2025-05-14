@@ -209,8 +209,10 @@ document.addEventListener("click", async (event) => {
     await api("POST", "/api/reviews/" + done + "/done");
     await refreshItems();
   } else if (del) {
-    await api("DELETE", "/api/items/" + del);
-    await refreshItems();
+    if (confirm("Delete this item and its whole schedule?")) {
+      await api("DELETE", "/api/items/" + del);
+      await refreshItems();
+    }
   }
 });
 
