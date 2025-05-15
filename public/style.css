@@ -67,3 +67,4 @@ button.danger { background: #cf222e; }
 a { color: var(--accent); }
 .add-row { display: flex; gap: 8px; align-items: center; }
 .add-row input { flex: 1; }
+#export-row { margin-top: 12px; }
