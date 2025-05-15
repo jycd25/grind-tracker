@@ -2,6 +2,7 @@ import { mkdirSync } from "node:fs";
 import { dirname } from "node:path";
 import { DatabaseSync } from "node:sqlite";
 import { DEFAULT_LADDER, parseLadder, scheduleDates, todayStr } from "../core/schedule.ts";
+import { buildExport, type ExportFile } from "../core/exportFile.ts";
 import type { ItemRow, ItemWithReviews, ReviewRow } from "../core/types.ts";
 
 const SCHEMA = `
@@ -116,5 +117,9 @@ export function listDue(db: DatabaseSync, date?: string): Array<{ review: Review
       first_date: row.first_date as string,
     },
   }));
+}
+
+export function exportData(db: DatabaseSync): ExportFile {
+  return buildExport(getLadder(db), listItems(db));
 }
 

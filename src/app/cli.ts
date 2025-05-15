@@ -1,13 +1,27 @@
+#!/usr/bin/env node
 import { spawn } from "node:child_process";
+import { writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
-import { openDb } from "./db.ts";
+import { exportData, openDb } from "./db.ts";
 import { createApp } from "./server.ts";
 
 const PUBLIC_DIR = join(dirname(fileURLToPath(import.meta.url)), "../../public");
 const DEFAULT_DB = join(homedir(), ".grind-tracker", "grind.db");
+
+const USAGE = `usage: grind-tracker [command] [options]
+
+commands:
+  serve (default)   start the local web UI
+  export [file]     write all data as JSON (stdout if no file)
+
+options:
+  --db <path>       database file (default ${DEFAULT_DB})
+  --port <n>        serve port (default 8777)
+  --notes <dir>     index *.md / *.txt headings from this folder
+`;
 
 function openBrowser(url: string): void {
   const cmd = process.platform === "darwin" ? "open" : process.platform === "win32" ? "start" : "xdg-open";
@@ -18,29 +32,53 @@ function openBrowser(url: string): void {
   }
 }
 
-const { values } = parseArgs({
-  options: {
-    db: { type: "string", default: DEFAULT_DB },
-    port: { type: "string", default: "8777" },
-    notes: { type: "string" },
-  },
-});
+function main(): number {
+  const { values, positionals } = parseArgs({
+    allowPositionals: true,
+    options: {
+      db: { type: "string", default: DEFAULT_DB },
+      port: { type: "string", default: "8777" },
+      notes: { type: "string" },
+    },
+  });
+  const command = positionals[0] ?? "serve";
 
-const db = openDb(values.db);
-const port = Number(values.port);
-const app = createApp(db, { publicDir: PUBLIC_DIR, notesDir: values.notes });
-app.on("error", (err: NodeJS.ErrnoException) => {
-  if (err.code === "EADDRINUSE") {
-    console.error(
-      `Port ${port} is already in use — the tracker is probably already running. Open http://127.0.0.1:${port}/`,
-    );
-    process.exit(1);
+  if (command === "serve") {
+    const db = openDb(values.db);
+    const port = Number(values.port);
+    const app = createApp(db, { publicDir: PUBLIC_DIR, notesDir: values.notes });
+    app.on("error", (err: NodeJS.ErrnoException) => {
+      if (err.code === "EADDRINUSE") {
+        console.error(
+          `Port ${port} is already in use — the tracker is probably already running. Open http://127.0.0.1:${port}/`,
+        );
+        process.exit(1);
+      }
+      throw err;
+    });
+    app.listen(port, "127.0.0.1", () => {
+      const url = `http://127.0.0.1:${port}/`;
+      console.log(`Grind tracker running at ${url} (Ctrl+C to stop)`);
+      console.log(`Database: ${values.db}`);
+      openBrowser(url);
+    });
+    return 0;
   }
-  throw err;
-});
-app.listen(port, "127.0.0.1", () => {
-  const url = `http://127.0.0.1:${port}/`;
-  console.log(`Grind tracker running at ${url} (Ctrl+C to stop)`);
-  console.log(`Database: ${values.db}`);
-  openBrowser(url);
-});
+
+  if (command === "export") {
+    const db = openDb(values.db);
+    const json = JSON.stringify(exportData(db), null, 2);
+    if (positionals[1]) {
+      writeFileSync(positionals[1], json + "\n");
+      console.log(`Exported to ${positionals[1]}`);
+    } else {
+      process.stdout.write(json + "\n");
+    }
+    return 0;
+  }
+
+  console.error(USAGE);
+  return 1;
+}
+
+process.exitCode = main();

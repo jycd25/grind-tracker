@@ -19,9 +19,10 @@ const STATIC: Record<string, [string, string]> = {
 const REVIEW_RE = /^\/api\/reviews\/(\d+)\/(done|undone)$/;
 const ITEM_RE = /^\/api\/items\/(\d+)$/;
 
-function send(res: http.ServerResponse, status: number, obj: unknown): void {
-  res.writeHead(status, { "Content-Type": "application/json; charset=utf-8" });
-  res.end(JSON.stringify(obj));
+function send(res: http.ServerResponse, status: number, obj: unknown, headers: Record<string, string> = {}): void {
+  const body = JSON.stringify(obj);
+  res.writeHead(status, { "Content-Type": "application/json; charset=utf-8", ...headers });
+  res.end(body);
 }
 
 function readBody(req: http.IncomingMessage): Promise<unknown> {
@@ -51,6 +52,11 @@ export function createApp(db: DatabaseSync, opts: AppOptions): http.Server {
       return send(res, 200, {
         base: opts.notesDir ? resolve(opts.notesDir) : null,
         sections: opts.notesDir ? scan(opts.notesDir) : [],
+      });
+    }
+    if (method === "GET" && path === "/api/export") {
+      return send(res, 200, store.exportData(db), {
+        "Content-Disposition": 'attachment; filename="grind-export.json"',
       });
     }
 
