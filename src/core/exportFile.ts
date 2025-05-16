@@ -37,3 +37,10 @@ export function buildExport(ladder: string, items: ItemWithReviews[]): ExportFil
     })),
   };
 }
+
+export function parseExport(data: unknown): ExportFile {
+  const file = data as ExportFile;
+  if (file.version !== EXPORT_VERSION) throw new Error(`unsupported export file version: ${String(file.version)}`);
+  if (!Array.isArray(file.items)) throw new Error("invalid export file: items must be an array");
+  return file;
+}

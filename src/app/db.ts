@@ -123,3 +123,14 @@ export function exportData(db: DatabaseSync): ExportFile {
   return buildExport(getLadder(db), listItems(db));
 }
 
+export function importData(db: DatabaseSync, file: ExportFile): { added: number } {
+  let added = 0;
+  const insItem = db.prepare("INSERT INTO items (label, source, anchor, note, first_date) VALUES (?, ?, ?, ?, ?)");
+  const insReview = db.prepare("INSERT INTO reviews (item_id, due_date, step, done_at) VALUES (?, ?, ?, ?)");
+  for (const item of file.items) {
+    const id = Number(insItem.run(item.label, item.source, item.anchor, item.note, item.first_date).lastInsertRowid);
+    for (const r of item.reviews) insReview.run(id, r.due_date, r.step, r.done_at);
+    added += 1;
+  }
+  return { added };
+}

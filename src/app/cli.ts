@@ -1,11 +1,12 @@
 #!/usr/bin/env node
 import { spawn } from "node:child_process";
-import { writeFileSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
-import { exportData, openDb } from "./db.ts";
+import { parseExport } from "../core/exportFile.ts";
+import { exportData, importData, openDb } from "./db.ts";
 import { createApp } from "./server.ts";
 
 const PUBLIC_DIR = join(dirname(fileURLToPath(import.meta.url)), "../../public");
@@ -16,6 +17,7 @@ const USAGE = `usage: grind-tracker [command] [options]
 commands:
   serve (default)   start the local web UI
   export [file]     write all data as JSON (stdout if no file)
+  import <file>     merge a JSON export into the database
 
 options:
   --db <path>       database file (default ${DEFAULT_DB})
@@ -74,6 +76,18 @@ function main(): number {
     } else {
       process.stdout.write(json + "\n");
     }
+    return 0;
+  }
+
+  if (command === "import") {
+    if (!positionals[1]) {
+      console.error("import requires a file argument");
+      return 1;
+    }
+    const db = openDb(values.db);
+    const file = parseExport(JSON.parse(readFileSync(positionals[1], "utf-8")));
+    const result = importData(db, file);
+    console.log(`Imported ${result.added} item(s).`);
     return 0;
   }
 
