@@ -87,7 +87,7 @@ function main(): number {
     const db = openDb(values.db);
     const file = parseExport(JSON.parse(readFileSync(positionals[1], "utf-8")));
     const result = importData(db, file);
-    console.log(`Imported ${result.added} item(s).`);
+    console.log(`Imported ${result.added} item(s), skipped ${result.skipped} duplicate(s).`);
     return 0;
   }
 
