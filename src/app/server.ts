@@ -2,6 +2,7 @@ import http from "node:http";
 import { readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import type { DatabaseSync } from "node:sqlite";
+import { parseExport } from "../core/exportFile.ts";
 import * as store from "./db.ts";
 import { scan } from "./indexer.ts";
 
@@ -58,6 +59,14 @@ export function createApp(db: DatabaseSync, opts: AppOptions): http.Server {
       return send(res, 200, store.exportData(db), {
         "Content-Disposition": 'attachment; filename="grind-export.json"',
       });
+    }
+
+    if (method === "POST" && path === "/api/import") {
+      try {
+        return send(res, 200, store.importData(db, parseExport(await readBody(req))));
+      } catch (err) {
+        return send(res, 400, { error: err instanceof Error ? err.message : String(err) });
+      }
     }
 
     if (method === "POST" && path === "/api/settings") {

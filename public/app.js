@@ -202,6 +202,18 @@ async function refreshItems() {
   renderAll();
 }
 
+async function importFile(file) {
+  try {
+    const data = JSON.parse(await file.text());
+    const result = await api("POST", "/api/import", data);
+    $("#import-msg").textContent =
+      "Imported " + result.added + " item(s), skipped " + result.skipped + " duplicate(s).";
+    await refreshItems();
+  } catch (err) {
+    $("#import-msg").textContent = "Error: " + err.message;
+  }
+}
+
 document.addEventListener("click", async (event) => {
   const done = event.target.getAttribute && event.target.getAttribute("data-done");
   const del = event.target.getAttribute && event.target.getAttribute("data-del");
@@ -237,6 +249,12 @@ $("#ladder-save").addEventListener("click", async () => {
     $("#settings-msg").textContent = "Error: " + err.message;
   }
 });
+$("#import-file").addEventListener("change", (event) => {
+  const file = event.target.files && event.target.files[0];
+  if (file) importFile(file);
+  event.target.value = "";
+});
+
 $("#add-date").value = todayStr();
 loadAll().catch((err) => {
   document.body.insertAdjacentHTML("afterbegin",
