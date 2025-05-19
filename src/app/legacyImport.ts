@@ -1,5 +1,6 @@
 import { DatabaseSync } from "node:sqlite";
 import { EXPORT_VERSION, type ExportFile, type ExportItem, type ExportReview } from "../core/exportFile.ts";
+import { DEFAULT_LADDER } from "../core/schedule.ts";
 
 interface LegacyEntry {
   id: number;
@@ -13,7 +14,9 @@ interface LegacyEntry {
 export function legacyToExport(legacyDbPath: string): ExportFile {
   const db = new DatabaseSync(legacyDbPath, { readOnly: true });
   try {
-    const ladderRow = db.prepare("SELECT value FROM settings WHERE key = 'ladder'").get() as { value: string };
+    const ladderRow = db.prepare("SELECT value FROM settings WHERE key = 'ladder'").get() as
+      | { value: string }
+      | undefined;
     const entries = db
       .prepare("SELECT id, label, file, anchor, note, first_date FROM entries ORDER BY id")
       .all() as unknown as LegacyEntry[];
@@ -28,7 +31,7 @@ export function legacyToExport(legacyDbPath: string): ExportFile {
       first_date: entry.first_date,
       reviews: reviewStmt.all(entry.id) as unknown as ExportReview[],
     }));
-    return { version: EXPORT_VERSION, ladder: ladderRow.value, items };
+    return { version: EXPORT_VERSION, ladder: ladderRow?.value ?? DEFAULT_LADDER, items };
   } finally {
     db.close();
   }
