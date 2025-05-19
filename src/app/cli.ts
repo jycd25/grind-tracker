@@ -7,6 +7,7 @@ import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
 import { parseExport } from "../core/exportFile.ts";
 import { exportData, importData, openDb } from "./db.ts";
+import { legacyToExport } from "./legacyImport.ts";
 import { createApp } from "./server.ts";
 
 const PUBLIC_DIR = join(dirname(fileURLToPath(import.meta.url)), "../../public");
@@ -18,6 +19,8 @@ commands:
   serve (default)   start the local web UI
   export [file]     write all data as JSON (stdout if no file)
   import <file>     merge a JSON export into the database
+  import-legacy <grind.db>
+                    one-time import from the legacy Python tracker
 
 options:
   --db <path>       database file (default ${DEFAULT_DB})
@@ -87,6 +90,17 @@ function main(): number {
     const db = openDb(values.db);
     const file = parseExport(JSON.parse(readFileSync(positionals[1], "utf-8")));
     const result = importData(db, file);
+    console.log(`Imported ${result.added} item(s), skipped ${result.skipped} duplicate(s).`);
+    return 0;
+  }
+
+  if (command === "import-legacy") {
+    if (!positionals[1]) {
+      console.error("import-legacy requires the path to the legacy grind.db");
+      return 1;
+    }
+    const db = openDb(values.db);
+    const result = importData(db, legacyToExport(positionals[1]));
     console.log(`Imported ${result.added} item(s), skipped ${result.skipped} duplicate(s).`);
     return 0;
   }
