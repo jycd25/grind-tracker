@@ -64,11 +64,13 @@ export function getItem(db: DatabaseSync, id: number): ItemWithReviews | null {
 }
 
 export function addItem(db: DatabaseSync, input: NewItem): ItemWithReviews {
+  const label = (input.label ?? "").trim();
+  if (!label) throw new Error("label is required");
   const steps = parseLadder(getLadder(db));
   const dues = scheduleDates(input.first_date, steps);
   const cur = db
     .prepare("INSERT INTO items (label, source, anchor, note, first_date) VALUES (?, ?, ?, ?, ?)")
-    .run(input.label, input.source ?? null, input.anchor ?? null, input.note ?? "", input.first_date);
+    .run(label, input.source ?? null, input.anchor ?? null, input.note ?? "", input.first_date);
   const id = Number(cur.lastInsertRowid);
   const ins = db.prepare("INSERT INTO reviews (item_id, due_date, step) VALUES (?, ?, ?)");
   steps.forEach((step, i) => ins.run(id, dues[i], step));
