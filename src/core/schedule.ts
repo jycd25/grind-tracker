@@ -18,8 +18,26 @@ export function parseLadder(s: string): number[] {
 const DAY_MS = 86_400_000;
 
 export function addDays(isoDate: string, days: number): string {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(isoDate)) {
+    throw new Error("invalid date: " + isoDate);
+  }
   const t = Date.parse(isoDate + "T00:00:00Z");
-  return new Date(t + days * DAY_MS).toISOString().slice(0, 10);
+  if (Number.isNaN(t)) {
+    throw new Error("invalid date: " + isoDate);
+  }
+  try {
+    const roundTrip = new Date(t).toISOString().slice(0, 10);
+    if (roundTrip !== isoDate) {
+      throw new Error("invalid date: " + isoDate);
+    }
+  } catch (e) {
+    throw new Error("invalid date: " + isoDate);
+  }
+  try {
+    return new Date(t + days * DAY_MS).toISOString().slice(0, 10);
+  } catch (e) {
+    throw new Error("invalid date: " + isoDate);
+  }
 }
 
 export function scheduleDates(firstDate: string, steps: number[]): string[] {
