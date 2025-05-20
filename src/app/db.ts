@@ -82,6 +82,30 @@ export function listItems(db: DatabaseSync): ItemWithReviews[] {
   return ids.map((row) => getItem(db, row.id)!);
 }
 
+export function findItemByLabel(db: DatabaseSync, label: string): ItemWithReviews | null {
+  const row = db.prepare("SELECT id FROM items WHERE label = ?").get(label.trim()) as { id: number } | undefined;
+  return row ? getItem(db, row.id) : null;
+}
+
+export function updateItem(
+  db: DatabaseSync,
+  id: number,
+  fields: Partial<Pick<ItemRow, "label" | "note" | "source" | "anchor">>,
+): ItemWithReviews | null {
+  const existing = getItem(db, id);
+  if (!existing) return null;
+  const label = fields.label !== undefined ? fields.label.trim() : existing.label;
+  if (!label) throw new Error("label is required");
+  db.prepare("UPDATE items SET label = ?, note = ?, source = ?, anchor = ? WHERE id = ?").run(
+    label,
+    fields.note !== undefined ? fields.note : existing.note,
+    fields.source !== undefined ? fields.source : existing.source,
+    fields.anchor !== undefined ? fields.anchor : existing.anchor,
+    id,
+  );
+  return getItem(db, id);
+}
+
 export function deleteItem(db: DatabaseSync, id: number): boolean {
   return db.prepare("DELETE FROM items WHERE id = ?").run(id).changes > 0;
 }
