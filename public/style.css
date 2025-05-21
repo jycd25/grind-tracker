@@ -1,6 +1,12 @@
 :root {
   --bg: #ffffff; --fg: #1f2328; --muted: #656d76; --line: #d0d7de;
-  --accent: #0969da; --chipbg: #f6f8fa;
+  --accent: #0969da; --late: #cf222e; --ok: #1a7f37; --chipbg: #f6f8fa;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0d1117; --fg: #e6edf3; --muted: #8b949e; --line: #30363d;
+    --accent: #58a6ff; --late: #f85149; --ok: #3fb950; --chipbg: #161b22;
+  }
 }
 * { box-sizing: border-box; }
 body {
@@ -27,7 +33,7 @@ button {
   background: var(--accent); color: #fff; border: none; border-radius: 6px;
 }
 button:disabled { opacity: 0.4; cursor: default; }
-button.danger { background: #cf222e; }
+button.danger { background: var(--late); }
 .row, .card {
   border: 1px solid var(--line); border-radius: 8px;
   padding: 10px 12px; margin: 8px 0;
@@ -38,7 +44,7 @@ button.danger { background: #cf222e; }
   font-size: 12px; padding: 1px 8px; border-radius: 10px;
   background: var(--chipbg); border: 1px solid var(--line);
 }
-.badge.late { color: #cf222e; border-color: #cf222e; }
+.badge.late { color: var(--late); border-color: var(--late); }
 .badge.moved { color: var(--muted); }
 .badge.step { color: var(--accent); }
 .note, .meta, .hint { color: var(--muted); font-size: 13px; }
@@ -47,8 +53,8 @@ button.danger { background: #cf222e; }
   font-size: 12px; padding: 1px 8px; border-radius: 10px;
   background: var(--chipbg); border: 1px solid var(--line);
 }
-.chip.done { color: #1a7f37; }
-.chip.duenow { color: #cf222e; }
+.chip.done { color: var(--ok); }
+.chip.duenow { color: var(--late); }
 #selected-section {
   margin-top: 8px; display: flex; gap: 6px; flex-wrap: wrap;
   align-items: center; font-size: 13px; color: var(--muted);
@@ -57,11 +63,11 @@ button.danger { background: #cf222e; }
   margin: 0 0 0 4px; padding: 0 2px; font-size: 13px; line-height: 1;
   background: none; color: var(--muted); border: none; cursor: pointer;
 }
-.chip button.unsel:hover { color: #cf222e; }
+.chip button.unsel:hover { color: var(--late); }
 .result { padding: 6px 10px; border-bottom: 1px solid var(--line); cursor: pointer; }
 .result:hover { background: var(--chipbg); }
 #search-results { max-height: 320px; overflow-y: auto; margin-top: 4px; }
-.confirm { color: #1a7f37; font-size: 13px; }
+.confirm { color: var(--ok); font-size: 13px; }
 .empty { color: var(--muted); }
 .hidden { display: none; }
 a { color: var(--accent); }
