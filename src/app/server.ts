@@ -31,58 +31,73 @@ function readBody(req: http.IncomingMessage): Promise<unknown> {
     const chunks: Buffer[] = [];
     req.on("data", (c: Buffer) => chunks.push(c));
     req.on("error", reject);
-    req.on("end", () => resolvePromise(JSON.parse(Buffer.concat(chunks).toString("utf-8"))));
+    req.on("end", () => {
+      const raw = Buffer.concat(chunks).toString("utf-8");
+      try {
+        resolvePromise(JSON.parse(raw));
+      } catch {
+        reject(new Error("invalid JSON body"));
+      }
+    });
   });
+}
+
+function asRecord(v: unknown): Record<string, unknown> {
+  return typeof v === "object" && v !== null ? (v as Record<string, unknown>) : {};
 }
 
 export function createApp(db: DatabaseSync, opts: AppOptions): http.Server {
   return http.createServer(async (req, res) => {
-    const path = new URL(req.url ?? "/", "http://localhost").pathname;
-    const method = req.method ?? "GET";
-
-    if (method === "GET" && path in STATIC) {
-      const [name, ctype] = STATIC[path];
-      res.writeHead(200, { "Content-Type": ctype });
-      res.end(readFileSync(join(opts.publicDir, name)));
-      return;
+    try {
+      await route(db, opts, req, res);
+    } catch (err) {
+      send(res, 400, { error: err instanceof Error ? err.message : String(err) });
     }
+  });
+}
 
-    if (method === "GET" && path === "/api/items") return send(res, 200, store.listItems(db));
-    if (method === "GET" && path === "/api/settings") return send(res, 200, { ladder: store.getLadder(db) });
-    if (method === "GET" && path === "/api/sections") {
+async function route(
+  db: DatabaseSync,
+  opts: AppOptions,
+  req: http.IncomingMessage,
+  res: http.ServerResponse,
+): Promise<void> {
+  const path = new URL(req.url ?? "/", "http://localhost").pathname;
+  const method = req.method ?? "GET";
+
+  if (method === "GET" && path in STATIC) {
+    const [name, ctype] = STATIC[path];
+    try {
+      const body = readFileSync(join(opts.publicDir, name));
+      res.writeHead(200, { "Content-Type": ctype });
+      res.end(body);
+    } catch {
+      send(res, 404, { error: `missing static file: ${name}` });
+    }
+    return;
+  }
+
+  if (method === "GET") {
+    if (path === "/api/items") return send(res, 200, store.listItems(db));
+    if (path === "/api/settings") return send(res, 200, { ladder: store.getLadder(db) });
+    if (path === "/api/sections") {
       return send(res, 200, {
         base: opts.notesDir ? resolve(opts.notesDir) : null,
         sections: opts.notesDir ? scan(opts.notesDir) : [],
       });
     }
-    if (method === "GET" && path === "/api/export") {
+    if (path === "/api/export") {
       return send(res, 200, store.exportData(db), {
         "Content-Disposition": 'attachment; filename="grind-export.json"',
       });
     }
+    return send(res, 404, { error: "not found" });
+  }
 
-    if (method === "POST" && path === "/api/import") {
-      try {
-        return send(res, 200, store.importData(db, parseExport(await readBody(req))));
-      } catch (err) {
-        return send(res, 400, { error: err instanceof Error ? err.message : String(err) });
-      }
-    }
-
-    if (method === "POST" && path === "/api/settings") {
-      const payload = (await readBody(req)) as { ladder?: string };
-      try {
-        store.setLadder(db, String(payload.ladder ?? ""));
-      } catch (err) {
-        return send(res, 400, { error: err instanceof Error ? err.message : String(err) });
-      }
-      return send(res, 200, { ok: true });
-    }
-
-    if (method === "POST" && path === "/api/items") {
-      const payload = (await readBody(req)) as {
-        label?: string; source?: string | null; anchor?: string | null; note?: string; first_date?: string;
-      };
+  if (method === "POST") {
+    const payload = asRecord(await readBody(req));
+    const review = REVIEW_RE.exec(path);
+    if (path === "/api/items") {
       const item = store.addItem(db, {
         label: String(payload.label ?? ""),
         source: payload.source == null ? null : String(payload.source),
@@ -92,19 +107,26 @@ export function createApp(db: DatabaseSync, opts: AppOptions): http.Server {
       });
       return send(res, 201, item);
     }
-
-    const review = REVIEW_RE.exec(path);
-    if (method === "POST" && review) {
+    if (review) {
       const ok = store.markReview(db, Number(review[1]), review[2] === "done");
       return ok ? send(res, 200, { ok: true }) : send(res, 404, { error: "review not found" });
     }
-
-    const item = ITEM_RE.exec(path);
-    if (method === "DELETE" && item) {
-      const ok = store.deleteItem(db, Number(item[1]));
-      return ok ? send(res, 200, { ok: true }) : send(res, 404, { error: "item not found" });
+    if (path === "/api/settings") {
+      store.setLadder(db, String(payload.ladder ?? ""));
+      return send(res, 200, { ok: true });
     }
+    if (path === "/api/import") {
+      return send(res, 200, store.importData(db, parseExport(payload)));
+    }
+    return send(res, 404, { error: "not found" });
+  }
 
-    send(res, 404, { error: "not found" });
-  });
+  if (method === "DELETE") {
+    const m = ITEM_RE.exec(path);
+    if (!m) return send(res, 404, { error: "not found" });
+    const ok = store.deleteItem(db, Number(m[1]));
+    return ok ? send(res, 200, { ok: true }) : send(res, 404, { error: "item not found" });
+  }
+
+  send(res, 404, { error: "not found" });
 }
