@@ -33,6 +33,7 @@ function readBody(req: http.IncomingMessage): Promise<unknown> {
     req.on("error", reject);
     req.on("end", () => {
       const raw = Buffer.concat(chunks).toString("utf-8");
+      if (raw === "") return resolvePromise({});
       try {
         resolvePromise(JSON.parse(raw));
       } catch {
