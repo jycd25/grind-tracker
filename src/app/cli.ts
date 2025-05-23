@@ -26,6 +26,7 @@ options:
   --db <path>       database file (default ${DEFAULT_DB})
   --port <n>        serve port (default 8777)
   --notes <dir>     index *.md / *.txt headings from this folder
+  --no-open         do not open the browser
 `;
 
 function openBrowser(url: string): void {
@@ -44,6 +45,7 @@ function main(): number {
       db: { type: "string", default: DEFAULT_DB },
       port: { type: "string", default: "8777" },
       notes: { type: "string" },
+      "no-open": { type: "boolean", default: false },
     },
   });
   const command = positionals[0] ?? "serve";
@@ -65,7 +67,7 @@ function main(): number {
       const url = `http://127.0.0.1:${port}/`;
       console.log(`Grind tracker running at ${url} (Ctrl+C to stop)`);
       console.log(`Database: ${values.db}`);
-      openBrowser(url);
+      if (!values["no-open"]) openBrowser(url);
     });
     return 0;
   }
