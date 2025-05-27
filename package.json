@@ -1,10 +1,15 @@
 {
   "name": "grind-tracker",
   "version": "0.0.0",
-  "private": true,
+  "description": "Local-first spaced-repetition tracker for things you're learning, with a local web UI.",
+  "license": "Apache-2.0",
+  "author": "jycd25",
   "type": "module",
+  "bin": { "grind-tracker": "dist/app/cli.js" },
   "engines": { "node": ">=24" },
+  "files": ["dist", "public", "README.md"],
   "scripts": {
+    "build": "tsc -p tsconfig.build.json",
     "dev": "node src/app/cli.ts"
   },
   "devDependencies": {

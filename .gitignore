@@ -1,5 +1,9 @@
 node_modules/
+dist/
 *.db
 *.db-wal
 *.db-shm
 .local/
+
+# generated locally by `npm install`; the lockfile lives in the source repo
+package-lock.json
