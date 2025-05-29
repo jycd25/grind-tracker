@@ -28,6 +28,25 @@ Requires Node 24+.
 - The ladder can be changed in settings, but an edit only affects items added
   afterward. Existing items keep the schedule they were created with.
 
+## CLI reference
+
+```
+usage: grind-tracker [command] [options]
+
+commands:
+  serve (default)   start the local web UI
+  export [file]     write all data as JSON (stdout if no file)
+  import <file>     merge a JSON export into the database
+  import-legacy <grind.db>
+                    one-time import from the legacy Python tracker
+
+options:
+  --db <path>       database file (default ~/.grind-tracker/grind.db)
+  --port <n>        serve port (default 8777)
+  --notes <dir>     index *.md / *.txt headings from this folder
+  --no-open         do not open the browser
+```
+
 ## License
 
 Apache License 2.0. See [LICENSE](LICENSE).
