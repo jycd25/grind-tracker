@@ -47,6 +47,24 @@ options:
   --no-open         do not open the browser
 ```
 
+## Export, import, and migrating from the legacy tracker
+
+`grind-tracker export [file]` writes a versioned JSON snapshot of your
+ladder and every item (with its full review history), either to stdout or to
+`file` if given. `grind-tracker import <file>` merges an export back in;
+items are matched by label, so importing the same file twice just skips the
+duplicates instead of doubling them up.
+
+If you're moving from the legacy Python tracker, run:
+
+```bash
+grind-tracker import-legacy path/to/grind.db
+```
+
+This is a one-time read of the old SQLite schema (`entries`, `reviews`,
+`settings`) into the same versioned export format, then merges it into your
+grind-tracker database.
+
 ## License
 
 Apache License 2.0. See [LICENSE](LICENSE).
