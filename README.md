@@ -65,6 +65,11 @@ This is a one-time read of the old SQLite schema (`entries`, `reviews`,
 `settings`) into the same versioned export format, then merges it into your
 grind-tracker database.
 
+## Security note
+
+The web server only binds to `127.0.0.1`, so it is never reachable from
+another machine on your network.
+
 ## License
 
 Apache License 2.0. See [LICENSE](LICENSE).
