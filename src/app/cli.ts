@@ -46,8 +46,13 @@ function main(): number {
       port: { type: "string", default: "8777" },
       notes: { type: "string" },
       "no-open": { type: "boolean", default: false },
+      help: { type: "boolean", default: false },
     },
   });
+  if (values.help) {
+    process.stdout.write(USAGE);
+    return 0;
+  }
   const command = positionals[0] ?? "serve";
 
   if (command === "serve") {
