@@ -12,7 +12,8 @@
     "test": "node --test 'src/**/*.test.ts'",
     "typecheck": "tsc --noEmit",
     "build": "tsc -p tsconfig.build.json",
-    "dev": "node src/app/cli.ts"
+    "dev": "node src/app/cli.ts",
+    "prepublishOnly": "npm run typecheck && npm test && npm run build"
   },
   "devDependencies": {
     "@types/node": "^22.15.0",
