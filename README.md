@@ -5,8 +5,11 @@ local web UI.
 
 ## Quick start
 
+Install it, then start it:
+
 ```bash
-npx grind-tracker
+npm install -g grind-tracker
+grind-tracker
 ```
 
 This opens `http://127.0.0.1:8777` in your browser. All data lives in a
