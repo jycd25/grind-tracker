@@ -48,7 +48,10 @@ options:
   --port <n>        serve port (default 8777)
   --notes <dir>     index *.md / *.txt headings from this folder
   --no-open         do not open the browser
+  --help            show this usage text and exit
 ```
+
+Run `grind-tracker --help` at any time to print this reference.
 
 ## Export, import, and migrating from the legacy tracker
 
