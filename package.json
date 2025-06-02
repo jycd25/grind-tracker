@@ -1,6 +1,6 @@
 {
   "name": "grind-tracker",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Local-first spaced-repetition tracker for things you're learning, with a local web UI.",
   "license": "Apache-2.0",
   "author": "jycd25",
