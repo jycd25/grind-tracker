@@ -3,6 +3,8 @@
 A local-first spaced-repetition tracker for things you're learning, with a
 local web UI.
 
+> **Note:** the `grind-tracker` package is available again on npm.
+
 ## Quick start
 
 Install it, then start it:
